@@ -532,7 +532,8 @@ const AgentChatPage: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <ChatContainer>
-        <div style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column',flex: 1,
+        minHeight: '600px', minWidth: '320px' }}>
           <Title level={3} style={{ marginBottom: 16 }}>智能Agent助手</Title>
           
           {/* Agent选择和状态 */}
@@ -562,35 +563,62 @@ const AgentChatPage: React.FC = () => {
               <Col span={12}>
                 <Text type="secondary">{currentAgent?.description}</Text>
               </Col>
-              <Col span={4} style={{ textAlign: 'right' }}>
-                <Space>
-                  <Tooltip title="文件上传">
-                    <Button 
-                      icon={<UploadOutlined />} 
-                      onClick={() => setIsUploadModalVisible(true)}
-                      type="primary"
-                    >
-                      文件上传
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="指令执行">
-                    <Button 
-                      icon={<PlayCircleOutlined />} 
-                      onClick={() => setIsCommandModalVisible(true)}
-                    >
-                      指令执行
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="清空对话">
-                    <Button icon={<ClearOutlined />} onClick={handleClearHistory} />
-                  </Tooltip>
-                  <Tooltip title="设置">
-                    <Button 
-                      icon={<SettingOutlined />} 
-                      onClick={() => setIsSettingsVisible(true)}
-                    />
-                  </Tooltip>
-                </Space>
+              <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+                <ResponsiveToolbarContainer>
+                  {/* 文件上传 - 单独一行 */}
+                  <div style={{ width: '100%', marginBottom: '8px' }}>
+                    <Tooltip title="文件上传">
+                      <ResponsiveIconButton
+                        icon={<UploadOutlined />}
+                        onClick={() => setIsUploadModalVisible(true)}
+                        type="primary"
+                        size="small"
+                        style={{ width: '100%' }}
+                      >
+                        <span className="responsive-text">文件上传</span>
+                      </ResponsiveIconButton>
+                    </Tooltip>
+                  </div>
+                  
+                  {/* 指令执行 - 单独一行 */}
+                  <div style={{ width: '100%', marginBottom: '8px' }}>
+                    <Tooltip title="指令执行">
+                      <ResponsiveIconButton
+                        icon={<PlayCircleOutlined />}
+                        onClick={() => setIsCommandModalVisible(true)}
+                        size="small"
+                        style={{ width: '100%' }}
+                      >
+                        <span className="responsive-text">指令执行</span>
+                      </ResponsiveIconButton>
+                    </Tooltip>
+                  </div>
+                  
+                  {/* 清空对话和设置 - 并排一行 */}
+                  <div style={{ 
+                    display: 'flex', 
+                    width: '100%', 
+                    gap: '8px',
+                    justifyContent: 'space-between'
+                  }}>
+                    <Tooltip title="清空对话">
+                      <ResponsiveIconButton
+                        icon={<ClearOutlined />}
+                        onClick={handleClearHistory}
+                        size="small"
+                        style={{ flex: 1 }}
+                      />
+                    </Tooltip>
+                    <Tooltip title="设置">
+                      <ResponsiveIconButton
+                        icon={<SettingOutlined />}
+                        onClick={() => setIsSettingsVisible(true)}
+                        size="small"
+                        style={{ flex: 1 }}
+                      />
+                    </Tooltip>
+                  </div>
+                </ResponsiveToolbarContainer>
               </Col>
             </Row>
             {currentAgent && (
@@ -620,25 +648,38 @@ const AgentChatPage: React.FC = () => {
             </div>
           </Card>
 
-          <Row gutter={16} style={{ flex: 1, minHeight: 0 }}>
+          <Row 
+          gutter={[16, 16]} 
+          style={{ 
+            flex: 1, // 允许扩展
+            display: 'flex',
+            minHeight: 0, // 重要：允许收缩
+            width: '100%',
+            margin: 0,
+            alignItems: 'stretch' // 让子项拉伸填充高度
+          }}
+        >
             {/* 主对话区域 */}
-            <Col span={16}>
+            <Col xs={24} lg={16}>
               <Card 
                 title="对话区域" 
                 size="small"
-                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                style={{ flex: 1, // 填充可用空间
+                display: 'flex', 
+                flexDirection: 'column',
+                minHeight: '400px' }}
                 bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '12px' }}
               >
                 {/* 消息列表 */}
                 <div style={{ 
                   flex: 1, 
                   overflowY: 'auto', 
-                  marginBottom: 16,
-                  padding: '8px',
+                  marginBottom: 'clamp(8px, 2vw, 16px)',
+                  padding: 'clamp(4px, 1vw, 8px)',
                   backgroundColor: '#fafafa',
                   borderRadius: '6px',
-                  maxHeight: '500px',
-                  scrollBehavior: 'smooth'
+                  maxHeight: 'min(450px, 65vh)',
+                   minHeight: '200px'
                 }} className="messages-container">
                   {messages.map((message) => (
                     <div
@@ -700,38 +741,56 @@ const AgentChatPage: React.FC = () => {
                 </div>
 
                 {/* 输入区域 */}
-                <Space.Compact style={{ width: '100%' }}>
-                  <TextArea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onPressEnter={(e) => {
-                      if (!e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder="请输入您的问题... (Shift+Enter换行)"
-                    autoSize={{ minRows: 1, maxRows: 4 }}
-                    style={{ resize: 'none' }}
-                  />
-                  <Button 
-                    type="primary" 
-                    icon={<SendOutlined />}
-                    onClick={handleSendMessage}
-                    loading={isLoading}
-                    disabled={!inputValue.trim()}
-                  >
-                    发送
-                  </Button>
-                </Space.Compact>
+                <Space.Compact style={{ 
+                width: '100%',
+                gap: '8px'
+              }}>
+                <TextArea
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onPressEnter={(e) => {
+                    if (!e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="请输入您的问题... (Shift+Enter换行)"
+                  autoSize={{ minRows: 1, maxRows: 4 }}
+                  style={{ 
+                    resize: 'none',
+                    fontSize: 'clamp(14px, 2vw, 16px)'
+                  }}
+                />
+                <Button 
+                  type="primary" 
+                  icon={<SendOutlined />}
+                  onClick={handleSendMessage}
+                  loading={isLoading}
+                  disabled={!inputValue.trim()}
+                  style={{
+                    minWidth: '60px',
+                    minHeight: '44px'
+                  }}
+                >
+                  发送
+                </Button>
+              </Space.Compact>
               </Card>
             </Col>
 
             {/* 右侧快捷操作 */}
-            <Col span={8}>
-              <Tabs defaultActiveKey="models" size="small" style={{ height: '100%' }}>
+            <Col xs={24} lg={8}>
+              <Tabs defaultActiveKey="models" size="small" style={{ 
+                flex: 1, // 填充高度
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0
+              }}>
                 <Tabs.TabPane tab="模型管理" key="models">
-                  <Card size="small" style={{ height: 'calc(100% - 46px)' }}>
+                  <Card size="small" style={{ 
+                    height: 'calc(100% - 40px)',
+                    minHeight: '180px'
+                  }}>
                     <div style={{ maxHeight: '100%', overflowY: 'auto' }}>
                       {availableModels.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
@@ -778,7 +837,10 @@ const AgentChatPage: React.FC = () => {
                 </Tabs.TabPane>
                 
                 <Tabs.TabPane tab="快捷问题" key="quick">
-                  <Card size="small" style={{ height: 'calc(100% - 46px)' }}>
+                  <Card size="small" style={{ 
+                      height: 'calc(100% - 40px)',
+                      minHeight: '200px'
+                    }}>
                     <div style={{ maxHeight: '100%', overflowY: 'auto' }}>
                       {quickQuestions.map((category, index) => (
                         <div key={index}>
@@ -818,7 +880,10 @@ const AgentChatPage: React.FC = () => {
                 </Tabs.TabPane>
                 
                 <Tabs.TabPane tab="推理任务" key="tasks">
-                  <Card size="small" style={{ height: 'calc(100% - 46px)' }}>
+                  <Card size="small" style={{ 
+                      height: 'calc(100% - 40px)',
+                      minHeight: '200px'
+                    }}>
                     <div style={{ maxHeight: '100%', overflowY: 'auto' }}>
                       {inferenceTasks.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
@@ -1146,13 +1211,83 @@ const MessageBubble = styled.div<{ isUser: boolean }>`
     }
   }
 `;
+// 响应式工具条容器
+const ResponsiveToolbarContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.5rem;
+  
+  @media (max-width: 768px) {
+    justify-content: center;
+    gap: 0.25rem;
+  }
+  
+  @media (max-width: 480px) {
+    .responsive-text {
+      display: none;
+    }
+  }
+`;
+
+// 响应式图标按钮
+const ResponsiveIconButton = styled(Button)`
+  font-size: clamp(12px, 1.5vw, 16px);
+  padding: clamp(4px, 1vw, 8px) clamp(8px, 1.5vw, 12px);
+  min-height: 44px;
+  min-width: 44px;
+  
+  .anticon {
+    font-size: clamp(14px, 2vw, 18px);
+  }
+  
+  @media (min-resolution: 200dpi) {
+    padding: 12px;
+    .anticon { 
+      font-size: 20px; 
+    }
+  }
+  
+  @media (max-width: 480px) {
+    flex: 1;
+    min-width: auto;
+  }
+`;
+
+// 响应式消息气泡
+const ResponsiveMessageBubble = styled(MessageBubble)`
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  font-size: clamp(14px, 2vw, 16px);
+  line-height: 1.5;
+`;
+
+// 响应式断点配置
+const breakpoints = {
+  xs: '480px',
+  sm: '576px',
+  md: '768px',
+  lg: '992px',
+  xl: '1200px',
+  xxl: '1600px'
+};
 
 // 添加滚动容器样式
 const ChatContainer = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: clamp(8px, 2vw, 16px);
   
+  // 添加最小尺寸限制
+  min-width: 320px; // 设置最小宽度，防止过度缩小
+  min-height: 500px; // 设置最小高度
+
   .messages-container {
     scroll-behavior: smooth;
     scrollbar-width: thin;
@@ -1174,6 +1309,10 @@ const ChatContainer = styled.div`
     &::-webkit-scrollbar-track {
       background-color: transparent;
     }
+    
+    // 响应式字体大小
+    font-size: clamp(14px, 2vw, 16px);
+    min-font-size: 12px; // 最小字体大小
   }
   
   .message-item {
@@ -1186,6 +1325,8 @@ const ChatContainer = styled.div`
   
   .message-input {
     transition: all ${props => props.theme.transitions.duration.short} ease;
+    font-size: clamp(14px, 2vw, 16px);
+    min-font-size: 12px;
     
     &:focus {
       transform: translateY(-2px);
@@ -1195,6 +1336,8 @@ const ChatContainer = styled.div`
   
   .send-button {
     transition: all ${props => props.theme.transitions.duration.short} ease;
+    min-height: 44px;
+    min-width: 60px;
     
     &:hover:not(:disabled) {
       transform: scale(1.05);
@@ -1202,6 +1345,46 @@ const ChatContainer = styled.div`
     
     &:active:not(:disabled) {
       transform: scale(0.95);
+    }
+  }
+    .ant-card {
+    min-height: 200px; // 卡片最小高度
+  }
+  
+  .ant-tabs {
+    min-height: 300px; // Tab容器最小高度
+  }
+  
+  // 响应式媒体查询
+  @media (max-width: ${breakpoints.md}) {
+    padding: 4px;
+    
+    .ant-col {
+      margin-bottom: 8px;
+    }
+  }
+  
+  @media (max-width: ${breakpoints.sm}) {
+    .messages-container {
+      max-height: 40vh;
+      min-height: 150px;
+    }
+      // 在小屏幕上确保元素不会太小
+    .ant-btn {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    
+    .ant-input {
+      min-height: 44px;
+    }
+      // 超小屏幕保护
+  @media (max-width: 360px) {
+    min-width: 320px; // 确保在非常小的屏幕上也有基本宽度
+    overflow-x: auto; // 允许横向滚动
+    
+    .ant-row {
+      min-width: 320px;
     }
   }
 `;
